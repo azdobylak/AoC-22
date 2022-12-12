@@ -1,23 +1,15 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"sort"
 	"strconv"
+    "aoc22/util"
 )
 
 func main() {
-
-	if len(os.Args) < 2 {
-		fmt.Println("Missing parameter, provide file name!")
-		return
-	}
-	file, _ := os.Open(os.Args[1])
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
+    var scanner *util.FileScanner = util.ReadFileScanner()
+    defer scanner.Close()
 
 	elfCalories := make(map[int]int)
 	elfIndex := 1
