@@ -13,14 +13,23 @@ func itemsToMap(items string) map[rune]bool {
 	return inventory
 }
 
-func findCommonItem(firstHalf string, secondHalf string) rune {
-	firstInventory := itemsToMap(firstHalf)
-	secondInventory := itemsToMap(secondHalf)
-
+func findCommonItem(items string, otherItems []string) rune {
+	firstInventory := itemsToMap(items)
+	var otherInventories []map[rune]bool
+	for _, _items := range otherItems {
+		otherInventories = append(otherInventories, itemsToMap(_items))
+	}
 	var commonItems []rune
 
 	for key, _ := range firstInventory {
-		if secondInventory[key] {
+		var includesAll = true
+		for _, invent := range otherInventories {
+			if !invent[key] {
+				includesAll = false
+				break
+			}
+		}
+		if includesAll {
 			commonItems = append(commonItems, key)
 		}
 	}
@@ -55,8 +64,29 @@ func solveA() int {
 		firstHalf := line[:halfLength]
 		secondHalf := line[halfLength:]
 
-		commonItem := findCommonItem(firstHalf, secondHalf)
+		commonItem := findCommonItem(firstHalf, []string{secondHalf})
 		prioritySum += int(itemToPriority(commonItem))
+	}
+
+	return prioritySum
+}
+
+func solveB() int {
+	var scanner *util.FileScanner = util.ReadFileScanner()
+	defer scanner.Close()
+
+	var prioritySum int
+	n := 0
+	items := [3]string{}
+
+	for scanner.Scan() {
+		items[n%3] = scanner.Text()
+
+		if (n+1)%3 == 0 {
+			commonItem := findCommonItem(items[0], items[1:3])
+			prioritySum += int(itemToPriority(commonItem))
+		}
+		n++
 	}
 
 	return prioritySum
@@ -65,6 +95,6 @@ func solveA() int {
 func main() {
 	fmt.Println("=== DAY 03a solution ===")
 	fmt.Println("sumPoints=", solveA())
-	//fmt.Println("=== DAY 03b solution ===")
-	//fmt.Println("sumPoints=", solveB())
+	fmt.Println("=== DAY 03b solution ===")
+	fmt.Println("sumPoints=", solveB())
 }
