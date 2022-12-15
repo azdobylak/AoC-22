@@ -37,6 +37,47 @@ func readChoice(character string) Symbol {
 	return s
 }
 
+func pickWinningSymbol(choice Symbol) Symbol {
+	var result Symbol
+	switch choice {
+	case SCISSORS:
+		result = ROCK
+	case ROCK:
+		result = PAPER
+	case PAPER:
+		result = SCISSORS
+	}
+	return result
+}
+
+func pickLoosingSymbol(choice Symbol) Symbol {
+	var result Symbol
+	switch choice {
+	case SCISSORS:
+		result = PAPER
+	case ROCK:
+		result = SCISSORS
+	case PAPER:
+		result = ROCK
+	}
+	return result
+}
+
+func assignFixedChoice(playerInput string, opponent Symbol) Symbol {
+	var playerResponse Symbol
+	if playerInput == "X" {
+		playerResponse = pickLoosingSymbol(opponent)
+	} else if playerInput == "Y" {
+		playerResponse = opponent
+	} else if playerInput == "Z" {
+		playerResponse = pickWinningSymbol(opponent)
+	} else {
+		panic("Wrong input: " + playerInput)
+	}
+
+	return playerResponse
+}
+
 func calculateMatchPoints(playerChoice Symbol, opponentChoice Symbol) int {
 	var result MatchResult
 	if playerChoice == opponentChoice {
@@ -63,18 +104,16 @@ func calculateMatchPoints(playerChoice Symbol, opponentChoice Symbol) int {
 			result = LOSS
 		}
 	} else {
-		panic("Unhandled scenario")
+		panic("Unhandled scenario: " + string(playerChoice) + " " + string(opponentChoice))
 	}
-	fmt.Println(int(result) + int(playerChoice))
 	return int(result) + int(playerChoice)
 }
 
-func main() {
+func solveA() int {
 	var scanner *util.FileScanner = util.ReadFileScanner()
 	defer scanner.Close()
 
 	var sumPoints int
-
 	for scanner.Scan() {
 		line := scanner.Text()
 		choices := strings.Split(line, " ")
@@ -84,6 +123,29 @@ func main() {
 
 		sumPoints += calculateMatchPoints(mySymbol, opponentSymbol)
 	}
+	return sumPoints
+}
+
+func solveB() int {
+	var scanner *util.FileScanner = util.ReadFileScanner()
+	defer scanner.Close()
+
+	var sumPoints int
+	for scanner.Scan() {
+		line := scanner.Text()
+		choices := strings.Split(line, " ")
+
+		opponentSymbol := readChoice(choices[0])
+		mySymbol := assignFixedChoice(choices[1], opponentSymbol)
+
+		sumPoints += calculateMatchPoints(mySymbol, opponentSymbol)
+	}
+	return sumPoints
+}
+
+func main() {
 	fmt.Println("=== DAY 02a solution ===")
-	fmt.Println("sumPoints=", sumPoints)
+	fmt.Println("sumPoints=", solveA())
+	fmt.Println("=== DAY 02b solution ===")
+	fmt.Println("sumPoints=", solveB())
 }
