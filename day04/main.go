@@ -7,12 +7,12 @@ import (
 	"strings"
 )
 
-type SectionRange struct {
+type SectionsRange struct {
 	min int
 	max int
 }
 
-func newSectionRange(input string) *SectionRange {
+func newSectionsRange(input string) *SectionsRange {
 	sections := strings.Split(input, "-")
 	min, err1 := strconv.Atoi(sections[0])
 	max, err2 := strconv.Atoi(sections[1])
@@ -21,15 +21,15 @@ func newSectionRange(input string) *SectionRange {
 		fmt.Println(err2)
 		panic("Unable to parse " + input)
 	}
-	return &SectionRange{min: min, max: max}
+	return &SectionsRange{min: min, max: max}
 }
 
-func RangeContainsOther(R *SectionRange, other *SectionRange) bool {
-	return R.min <= other.min && R.max >= other.max
+func (r *SectionsRange) Contains(other *SectionsRange) bool {
+	return r.min <= other.min && r.max >= other.max
 }
 
-func doesRangesOverlap(r1 *SectionRange, r2 *SectionRange) bool {
-	return RangeContainsOther(r1, r2) || RangeContainsOther(r2, r1)
+func (r *SectionsRange) Overlaps(other *SectionsRange) bool {
+	return !(r.min > other.max || r.max < other.min)
 }
 
 func solveA() int {
@@ -40,10 +40,10 @@ func solveA() int {
 	for scanner.Scan() {
 		line := scanner.Text()
 		inputs := strings.Split(line, ",")
-		range1 := newSectionRange(inputs[0])
-		range2 := newSectionRange(inputs[1])
+		r1 := newSectionsRange(inputs[0])
+		r2 := newSectionsRange(inputs[1])
 
-		if doesRangesOverlap(range1, range2) {
+		if r1.Contains(r2) || r2.Contains(r1) {
 			overlapingCount += 1
 		}
 	}
@@ -54,10 +54,19 @@ func solveB() int {
 	var scanner *util.FileScanner = util.ReadFileScanner()
 	defer scanner.Close()
 
+	var overlapingCount int
 	for scanner.Scan() {
+		line := scanner.Text()
+		inputs := strings.Split(line, ",")
+		r1 := newSectionsRange(inputs[0])
+		r2 := newSectionsRange(inputs[1])
+
+		if r1.Overlaps(r2) {
+			overlapingCount += 1
+		}
 	}
 
-	return 0
+	return overlapingCount
 }
 
 func main() {
