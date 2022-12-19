@@ -54,12 +54,39 @@ func (this *Stack[T]) Pop() T {
 	return el
 }
 
-func move(stacks map[int]*Stack[string], num int, from int, to int) {
-	for i := 1; i <= num; i++ {
-		el := stacks[from].Pop()
-		fmt.Println("Moving ", el)
-		stacks[to].Push(el)
+func move(stacks map[int]*Stack[string], order MoveOrder) {
+	for i := 1; i <= order.number; i++ {
+		el := stacks[order.from].Pop()
+		stacks[order.to].Push(el)
 	}
+}
+
+func moveGroup(stacks map[int]*Stack[string], order MoveOrder) {
+	items := make([]string, order.number)
+	for i := order.number - 1; i >= 0; i-- {
+		items[i] = stacks[order.from].Pop()
+	}
+
+	for i := 0; i < len(items); i++ {
+		stacks[order.to].Push(items[i])
+	}
+}
+
+type MoveOrder struct {
+	number int
+	from   int
+	to     int
+}
+
+func parseInputOrder(line string) MoveOrder {
+	re := regexp.MustCompile("[0-9]+")
+	inp := re.FindAllString(line, -1)
+
+	n, _ := strconv.Atoi(inp[0])
+	from, _ := strconv.Atoi(inp[1])
+	to, _ := strconv.Atoi(inp[2])
+
+	return MoveOrder{number: n, from: from, to: to}
 }
 
 func solveA() string {
@@ -69,13 +96,8 @@ func solveA() string {
 	stacks := createInitialStacks()
 	for scanner.Scan() {
 		line := scanner.Text()
-		re := regexp.MustCompile("[0-9]+")
-		inp := re.FindAllString(line, -1)
-
-		n, _ := strconv.Atoi(inp[0])
-		from, _ := strconv.Atoi(inp[1])
-		to, _ := strconv.Atoi(inp[2])
-		move(stacks, n, from, to)
+		order := parseInputOrder(line)
+		move(stacks, order)
 	}
 	var out bytes.Buffer
 	for i := 1; i <= len(stacks); i++ {
@@ -84,22 +106,28 @@ func solveA() string {
 	return out.String()
 }
 
-func solveB() int {
+func solveB() string {
 	var scanner *util.FileScanner = util.ReadFileScanner()
 	defer scanner.Close()
 
-	var overlapingCount int
+	stacks := createInitialStacks()
 	for scanner.Scan() {
-		//line := scanner.Text()
+		line := scanner.Text()
+		order := parseInputOrder(line)
+		moveGroup(stacks, order)
 	}
 
-	return overlapingCount
+	var out bytes.Buffer
+	for i := 1; i <= len(stacks); i++ {
+		out.WriteString(stacks[i].Peek())
+	}
+	return out.String()
 }
 
 func main() {
 
 	fmt.Println("=== DAY 05a solution ===")
 	fmt.Println(solveA())
-	//fmt.Println("=== DAY 05b solution ===")
-	//fmt.Println("sumPoints=", solveB())
+	fmt.Println("=== DAY 05b solution ===")
+	fmt.Println(solveB())
 }
