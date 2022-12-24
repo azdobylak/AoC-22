@@ -4,6 +4,7 @@ import (
 	"aoc22/day07/file"
 	"aoc22/util"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -43,22 +44,29 @@ type DirSummary struct {
 	TotalSize int
 }
 
-func CollectDirsLessOrEqual(f *file.File, maxSize int, matchingDirs *[]DirSummary) int {
+func AccumulateDirSizes(f *file.File, accDirs *[]DirSummary) int {
 	var totalSize int
 
 	for _, subdir := range f.Childs {
 		if subdir.Childs == nil {
 			totalSize += subdir.Size
 		} else {
-			totalSize += CollectDirsLessOrEqual(subdir, maxSize, matchingDirs)
+			totalSize += AccumulateDirSizes(subdir, accDirs)
 		}
 	}
 
-	if totalSize <= maxSize {
-		*matchingDirs = append(*matchingDirs, DirSummary{File: f, TotalSize: totalSize})
+	if f.Childs != nil {
+		*accDirs = append(*accDirs, DirSummary{File: f, TotalSize: totalSize})
 	}
 
 	return totalSize
+}
+
+func CalculateDirSizes(root *file.File) []DirSummary {
+	var matchingDirs []DirSummary
+	AccumulateDirSizes(root, &matchingDirs)
+
+	return matchingDirs
 }
 
 func solveA() int {
@@ -66,15 +74,20 @@ func solveA() int {
 	defer scanner.Close()
 
 	root := ParseFileTree(scanner)
-	var dirs []DirSummary
 	const maxSize int = 100_000
-	CollectDirsLessOrEqual(root, maxSize, &dirs)
-	fmt.Printf("Found %d dirs with size less or equal to %d\n", len(dirs), maxSize)
+	dirs := CalculateDirSizes(root)
+
+	fmt.Printf("Found %d dirs\n", len(dirs))
 
 	var sum int
+	var i int
 	for _, sumDir := range dirs {
-		sum += sumDir.TotalSize
+		if sumDir.TotalSize <= maxSize {
+			sum += sumDir.TotalSize
+			i += 1
+		}
 	}
+	fmt.Printf("Found %d dirs with size less or equal to %d\n", i, maxSize)
 
 	return sum
 }
@@ -83,15 +96,30 @@ func solveB() int {
 	var scanner *util.FileScanner = util.ReadFileScanner()
 	defer scanner.Close()
 
-	root := ParseFileTree(scanner)
-	fmt.Println(root)
+	const diskSize int = 70_000_000
+	const requestedSize int = 30_000_000
 
-	return 0
+	root := ParseFileTree(scanner)
+	dirs := CalculateDirSizes(root)
+
+	sort.Slice(dirs, func(i, j int) bool {
+		return (dirs)[i].TotalSize < (dirs)[j].TotalSize
+	})
+
+	unusedSize := diskSize - dirs[len(dirs)-1].TotalSize
+
+	for _, dir := range dirs {
+		if unusedSize+dir.TotalSize >= requestedSize {
+			return dir.TotalSize
+		}
+	}
+
+	return -1
 }
 
 func main() {
 	fmt.Println("=== DAY 07a solution ===")
 	fmt.Println(solveA())
-	//fmt.Println("=== DAY 07b solution ===")
-	//fmt.Println(solveB())
+	fmt.Println("=== DAY 07b solution ===")
+	fmt.Println(solveB())
 }
