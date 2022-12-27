@@ -8,7 +8,12 @@ import (
 	"strings"
 )
 
-func execute(head, tail *rope.Knot, cmd string, visited *map[rope.Knot]bool) {
+type Position struct {
+	x int
+	y int
+}
+
+func execute(rp *rope.Rope, cmd string, visited *map[Position]bool) {
 	words := strings.Split(cmd, " ")
 	n, err := strconv.Atoi(words[1])
 	if err != nil {
@@ -17,8 +22,10 @@ func execute(head, tail *rope.Knot, cmd string, visited *map[rope.Knot]bool) {
 	direction := rope.NewDirection(words[0])
 
 	for i := 0; i < n; i++ {
-		move(head, tail, direction)
-		(*visited)[*tail] = true
+		rp.Move(direction)
+		tail := rp.Tail()
+		pos := Position{x: tail.X, y: tail.Y}
+		(*visited)[pos] = true
 	}
 }
 
@@ -31,14 +38,12 @@ func solveA() int {
 	var scanner *util.FileScanner = util.ReadFileScanner()
 	defer scanner.Close()
 
-	var H rope.Knot = rope.NewKnot("H")
-	var T rope.Knot = rope.NewKnot("T")
-
-	visited := make(map[rope.Knot]bool, 200)
+	rp := rope.NewRope(2)
+	visited := make(map[Position]bool, 200)
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		execute(&H, &T, line, &visited)
+		execute(&rp, line, &visited)
 	}
 
 	return len(visited)
@@ -48,7 +53,15 @@ func solveB() int {
 	var scanner *util.FileScanner = util.ReadFileScanner()
 	defer scanner.Close()
 
-	return -1
+	rp := rope.NewRope(10)
+	visited := make(map[Position]bool, 400)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		execute(&rp, line, &visited)
+	}
+
+	return len(visited)
 }
 
 func main() {
