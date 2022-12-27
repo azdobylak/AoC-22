@@ -28,7 +28,6 @@ func markVisibleTrees(forest [][]uint8) [][]bool {
 				visible[i][j] = true
 			}
 		}
-		//visible[i][max_ix] = true
 	}
 	// right to left
 	for i := 1; i < n_rows-1; i++ {
@@ -39,7 +38,6 @@ func markVisibleTrees(forest [][]uint8) [][]bool {
 				visible[i][j] = true
 			}
 		}
-		//visible[i][max_ix] = true
 	}
 
 	// top to bottom
@@ -51,7 +49,6 @@ func markVisibleTrees(forest [][]uint8) [][]bool {
 				visible[i][j] = true
 			}
 		}
-		//visible[max_ix][j] = true
 	}
 
 	// bottom to top
@@ -63,7 +60,6 @@ func markVisibleTrees(forest [][]uint8) [][]bool {
 				visible[i][j] = true
 			}
 		}
-		//visible[max_ix][j] = true
 	}
 
 	// border
@@ -113,6 +109,67 @@ func countVisibleTrees(visible [][]bool) int {
 	return sum
 }
 
+func calculateMaxScenicScore(forest [][]uint8) int {
+	n_rows, n_cols := len(forest), len(forest[0])
+
+	var maxScore int
+	var currentScore int
+
+	var currentHeight uint8
+
+	var scoreLeft int
+	var scoreRight int
+	var scoreUp int
+	var scoreDown int
+	for i := 1; i < n_rows-1; i++ {
+		for j := 1; j < n_cols-1; j++ {
+			currentHeight = forest[i][j]
+			scoreDown = 0
+			scoreUp = 0
+			scoreRight = 0
+			scoreLeft = 0
+
+			// to right
+			for r := j + 1; r < n_cols; r++ {
+				scoreRight += 1
+				if forest[i][r] >= currentHeight {
+					break
+				}
+			}
+			// to left
+			for l := j - 1; l >= 0; l-- {
+				scoreLeft += 1
+				if forest[i][l] >= currentHeight {
+					break
+				}
+			}
+			// to bottom
+			for b := i + 1; b < n_rows; b++ {
+				scoreDown += 1
+				if forest[b][j] >= currentHeight {
+					break
+				}
+			}
+			// to top
+			for t := i - 1; t >= 0; t-- {
+				scoreUp += 1
+				if forest[t][j] >= currentHeight {
+					break
+				}
+			}
+
+			currentScore = scoreUp * scoreDown * scoreLeft * scoreRight
+
+			if currentScore > maxScore {
+				maxScore = currentScore
+			}
+
+		}
+	}
+
+	return maxScore
+}
+
 func solveA() int {
 	var scanner *util.FileScanner = util.ReadFileScanner()
 	defer scanner.Close()
@@ -126,7 +183,9 @@ func solveB() int {
 	var scanner *util.FileScanner = util.ReadFileScanner()
 	defer scanner.Close()
 
-	return -1
+	forest := inputToArray(scanner)
+
+	return calculateMaxScenicScore(forest)
 }
 
 func main() {
