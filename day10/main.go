@@ -30,9 +30,22 @@ func solveA() int {
 	return strengthsSum
 }
 
+func solveB() {
+	var scanner *util.FileScanner = util.ReadFileScanner()
+	defer scanner.Close()
+
+	state := NewOperationState()
+	for scanner.Scan() {
+		line := scanner.Text()
+		state.Process(line)
+	}
+
+	state.DrawSprite()
+}
+
 func main() {
 	fmt.Println("=== DAY 10a solution ===")
 	fmt.Println(solveA())
-	//fmt.Println("=== DAY 10b solution ===")
-	//fmt.Println(solveB())
+	fmt.Println("=== DAY 10b solution ===")
+	solveB()
 }
